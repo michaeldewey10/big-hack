@@ -1,0 +1,21 @@
+[package]
+name = "big-hack"
+version = "0.1.0"
+edition = "2024"
+description = "A native Big Walk private-session inspection console"
+license = "MIT"
+
+[dependencies]
+gpui = "=0.2.2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+anyhow = "1"
+
+[profile.dev]
+debug = 0
+
+[profile.release]
+opt-level = 2
+debug = 1
+strip = "none"
+
