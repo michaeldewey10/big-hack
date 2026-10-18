@@ -1,6 +1,6 @@
 [package]
 name = "big-hack"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2024"
 description = "A native Big Walk private-session inspection console"
 license = "MIT"

@@ -21,7 +21,7 @@ sys.path.insert(0, str(HERE))
 spec = importlib.util.spec_from_file_location("big_walk_pickup_helper", HERE / "Big-Walk-Pickup.py")
 helper = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(helper)
-from big_walk_paths import EXPECTED_HASHES
+from big_walk_paths import EXPECTED_HASHES, UnsupportedBuild
 OUTPUT_LOCK = threading.Lock()
 
 
@@ -54,7 +54,25 @@ def main():
     paused = False
     last_scan = last_status = 0
     pending = {}
-    verified = set()
+    build_checks = {}  # file signature -> None when supported, else the warning
+
+    def check_build(game_dir):
+        nonlocal last_status
+        signature = tuple((str(game_dir / p), (game_dir / p).stat().st_mtime_ns) for p in EXPECTED_HASHES)
+        if signature not in build_checks:
+            emit({"type": "status", "state": "checking", "message": "Checking the installed game version…"})
+            try:
+                helper.verify_game_build(game_dir)
+                build_checks[signature] = None
+            except UnsupportedBuild as error:
+                build_checks[signature] = str(error)
+            last_status = 0  # Replace the "checking" status on this scan.
+        return build_checks[signature]
+
+    try:
+        install_dir = helper.find_game_directory()
+    except Exception:
+        install_dir = None  # Located from the running process instead.
 
     def disconnect():
         nonlocal session, script, pid, generation
@@ -196,28 +214,33 @@ def main():
                     if len(matches) > 1:
                         raise RuntimeError("Multiple Big Walk processes found. Close the extra client to attach.")
                     if not matches:
+                        warning = check_build(install_dir) if install_dir else None
                         if now - last_status > 3:
-                            emit({"type": "status", "state": "searching", "message": "Waiting for Big Walk. Launch the game to connect automatically."})
+                            if warning:
+                                emit({"type": "status", "state": "unsupported", "message": warning})
+                            else:
+                                emit({"type": "status", "state": "searching", "message": "Waiting for Big Walk. Launch the game to connect automatically."})
                             last_status = now
                     else:
                         process = matches[0]
                         game_dir = helper.find_game_directory(process.pid)
-                        signature = tuple((str(game_dir / p), (game_dir / p).stat().st_mtime_ns) for p in EXPECTED_HASHES)
-                        if signature not in verified:
-                            emit({"type": "status", "state": "checking", "message": "Checking the installed game build…"})
-                            helper.verify_game_build(game_dir)
-                            verified.add(signature)
-                        pid = process.pid
-                        generation = uuid.uuid4().hex
-                        token = generation
-                        session = device.attach(pid)
-                        session.on("detached", lambda *args, token=token: messages.put((token, {"type": "detached"})))
-                        modules = ("you_settings.js", "fun_actions.js", "telemetry.js", "character_tools.js", "camera_tools.js", "location_tools.js", "pocket_tools.js")
-                        script = session.create_script(helper.JS + "\n" + "\n".join((HERE / name).read_text(encoding="utf-8") for name in modules))
-                        script.on("message", lambda message, data, token=token: on_message(message, data, token))
-                        script.load()
-                        emit({"type": "status", "state": "attached", "message": "Attached to Big Walk. Waiting for your character…", "pid": pid, "generation": generation})
-                        last_status = now
+                        warning = check_build(game_dir)
+                        if warning:
+                            if now - last_status > 3:
+                                emit({"type": "status", "state": "unsupported", "message": warning})
+                                last_status = now
+                        else:
+                            pid = process.pid
+                            generation = uuid.uuid4().hex
+                            token = generation
+                            session = device.attach(pid)
+                            session.on("detached", lambda *args, token=token: messages.put((token, {"type": "detached"})))
+                            modules = ("you_settings.js", "fun_actions.js", "telemetry.js", "character_tools.js", "camera_tools.js", "location_tools.js", "pocket_tools.js")
+                            script = session.create_script(helper.JS + "\n" + "\n".join((HERE / name).read_text(encoding="utf-8") for name in modules))
+                            script.on("message", lambda message, data, token=token: on_message(message, data, token))
+                            script.load()
+                            emit({"type": "status", "state": "attached", "message": "Attached to Big Walk. Waiting for your character…", "pid": pid, "generation": generation})
+                            last_status = now
                 except Exception as error:
                     disconnect()
                     emit({"type": "status", "state": "error", "message": str(error)})

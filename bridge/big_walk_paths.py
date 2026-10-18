@@ -12,11 +12,26 @@ import re
 
 GAME_APP_ID = "1478500"
 GAME_EXE = "Big Walk.exe"
+# Steam build ID of the audited client; used only to name versions in messages.
+SUPPORTED_STEAM_BUILD = "25723723"
 EXPECTED_HASHES = {
     Path("GameAssembly.dll"): "DF3F2DA21746121CFA3E1936615082492AED0B4DF8D6AF14FB70D960D035C478",
     Path("Big Walk_Data") / "il2cpp_data" / "Metadata" / "global-metadata.dat":
         "054EDF954946F09B259DA34F287A1C48048368B2845BA3F383A58148D00FCD44",
 }
+
+
+class UnsupportedBuild(RuntimeError):
+    """The installed game files are not the audited build."""
+
+
+def steam_build_id(directory: Path) -> str | None:
+    manifest = directory.parent.parent / f"appmanifest_{GAME_APP_ID}.acf"
+    try:
+        match = re.search(r'"buildid"\s*"(\d+)"', manifest.read_text(encoding="utf-8", errors="replace"))
+    except OSError:
+        return None
+    return match.group(1) if match else None
 
 
 def sha256_file(path: Path) -> str:
@@ -187,9 +202,14 @@ def verify_game_build(directory: Path) -> None:
         path = directory / relative
         if not path.is_file():
             raise RuntimeError(f"Discovered Big Walk install is missing {relative}: {path}")
-        actual = sha256_file(path)
-        if actual != expected:
-            raise RuntimeError(
-                f"Big Walk build differs from the audited version: {path} "
-                f"(expected {expected}, found {actual})"
+        if sha256_file(path) != expected:
+            found = steam_build_id(directory)
+            if found and found != SUPPORTED_STEAM_BUILD:
+                raise UnsupportedBuild(
+                    f"Unsupported Big Walk version: Steam build {found} is installed, but this Big Hack "
+                    f"release supports build {SUPPORTED_STEAM_BUILD}. Check for a newer Big Hack release."
+                )
+            raise UnsupportedBuild(
+                f"Big Walk's game files don't match the supported version (Steam build {SUPPORTED_STEAM_BUILD}). "
+                "The game may have been updated or modified; verify the files in Steam or check for a newer Big Hack release."
             )

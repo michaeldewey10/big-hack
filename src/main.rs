@@ -335,7 +335,7 @@ impl BigHack {
                         .to_string();
                     if state != self.state || message != self.connection_message {
                         if state != self.state {
-                            self.log(message.clone(), state != "error");
+                            self.log(message.clone(), !matches!(state.as_str(), "error" | "unsupported"));
                         }
                         if state != "attached" && state != "live" {
                             self.received = None;

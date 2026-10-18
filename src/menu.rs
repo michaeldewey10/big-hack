@@ -9,6 +9,7 @@ impl BigHack {
             "paused" => "Disconnected",
             "checking" => "Checking game…",
             "error" => "Could not connect",
+            "unsupported" => "Unsupported game version",
             "stale" => "Waiting for updates…",
             _ => "Looking for Big Walk…",
         }
@@ -57,7 +58,7 @@ impl BigHack {
             .child(
                 div()
                     .text_size(px(14.))
-                    .text_color(rgb(MUTED))
+                    .text_color(rgb(if self.state == "unsupported" { RED } else { MUTED }))
                     .line_height(px(20.))
                     .child(self.connection_label()),
             )
@@ -867,7 +868,7 @@ impl Render for BigHack {
                     .text_color(rgb(if *good { MUTED } else { RED }))
                     .child(message.clone()),
             );
-        } else if matches!(self.state.as_str(), "error" | "stale") {
+        } else if matches!(self.state.as_str(), "error" | "stale" | "unsupported") {
             body = body.child(
                 div()
                     .mt(px(10.))

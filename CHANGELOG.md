@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.1 — 2026-10-17
+
+- Game version detection: Big Hack checks the installed Big Walk files at startup and before attaching, and shows **Unsupported game version** in red when they don't match the supported build (Steam build 25723723). The message names the installed Steam build when Steam reports a different one.
+- An unsupported build no longer appears as a generic connection error, and its files are re-hashed only when they change on disk.
+
 ## 0.1.0 — 2026-10-17
 
 Initial public Windows release containing the current Big Hack work:

@@ -39,14 +39,14 @@ The bowling button is directly below the ring spawn button. It places ten bodies
 
 ### Compatibility
 
-This release supports one inspected Steam build:
+This release supports one inspected Steam build (Steam build ID `25723723`):
 
 | File | SHA-256 |
 | --- | --- |
 | GameAssembly.dll | `DF3F2DA21746121CFA3E1936615082492AED0B4DF8D6AF14FB70D960D035C478` |
 | Big Walk_Data/il2cpp_data/Metadata/global-metadata.dat | `054EDF954946F09B259DA34F287A1C48048368B2845BA3F383A58148D00FCD44` |
 
-A different build is rejected before attaching. A game update can change fields, native methods or behavior and requires a compatible Big Hack release. Automatic self-updating is not implemented in v0.1.0.
+Big Hack checks the installed game when it starts and again before attaching. A different build shows **Unsupported game version** naming the supported Steam build (and the installed one when Steam reports a different build), and Big Hack does not attach. A game update can change fields, native methods or behavior and requires a compatible Big Hack release. Automatic self-updating is not implemented.
 
 Player/item data describes the attached client's current state. The item list covers loaded props, not unloaded map objects. Observing a local wrapper return or state update does not by itself establish another peer's receipt or rendering. Implementation history and per-feature validation limits are retained in [development notes](docs/DEVELOPMENT-NOTES.md) and the bridge documentation.
 
