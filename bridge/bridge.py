@@ -235,7 +235,7 @@ def main():
                             token = generation
                             session = device.attach(pid)
                             session.on("detached", lambda *args, token=token: messages.put((token, {"type": "detached"})))
-                            modules = ("you_settings.js", "fun_actions.js", "telemetry.js", "character_tools.js", "camera_tools.js", "location_tools.js", "pocket_tools.js")
+                            modules = ("you_settings.js", "fun_actions.js", "telemetry.js", "character_tools.js", "camera_tools.js", "location_tools.js", "pocket_tools.js", "flare_tools.js")
                             script = session.create_script(helper.JS + "\n" + "\n".join((HERE / name).read_text(encoding="utf-8") for name in modules))
                             script.on("message", lambda message, data, token=token: on_message(message, data, token))
                             script.load()

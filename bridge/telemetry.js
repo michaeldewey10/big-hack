@@ -120,6 +120,7 @@ function perform(req) {
   }
   if (req.target_kind === 'camera') return {message:'Camera action returned.',...cameraTools.apply(req)};
   if (req.target_kind === 'location') return locationTools.apply(req,owner);
+  if (req.target_kind === 'fun' && ['flare_auto','flare_auto_off'].includes(req.action)) return flareTools.start(req,owner);
   if (req.target_kind === 'fun') return bigFun.start(req,owner,roster);
   let targetPosition, label;
   if (req.target_kind === 'player') {
@@ -160,10 +161,10 @@ function perform(req) {
   return locationTools.teleportTo(owner,destination);
 }
 rpc.exports.enqueue = function(req) {
-  if (queued || bigFun.busy() || pocketTools.busy()) return {ok:false, reason:'Another action is still running'};
+  if (queued || bigFun.busy() || pocketTools.busy() || flareTools.busy()) return {ok:false, reason:'Another action is still running'};
   const characterAction=req && req.target_kind==='self' && ['settings_set','settings_toggle','settings_restore','settings_preset'].includes(req.action);
   const targetAction=req && ['player','item'].includes(req.target_kind) && ['pickup','teleport'].includes(req.action);
-  const funAction=req && req.target_kind==='fun' && ['spawn_corpses','spawn_corpse_pins','clear_corpses','grab_all_items','gather_party'].includes(req.action);
+  const funAction=req && req.target_kind==='fun' && ['spawn_corpses','spawn_corpse_pins','clear_corpses','grab_all_items','gather_party','flare_auto','flare_auto_off'].includes(req.action);
   const toolsAction=req && req.target_kind==='tools' && ['appearance_set','appearance_randomize','held_use','held_release','held_drop'].includes(req.action);
   const cameraAction=req && req.target_kind==='camera' && ['camera_zoom','camera_detach','camera_return','camera_move','camera_turn'].includes(req.action);
   const locationAction=req && req.target_kind==='location' && ['teleport_back','location_capture','location_teleport'].includes(req.action);
@@ -177,19 +178,21 @@ rpc.exports.heldHeartbeat = function(req) {return characterTools.keepAlive(req);
 rpc.exports.cancelPending = function(id) {
   const queuedCancelled=!!(queued && queued.request_id===id);
   if(queuedCancelled) queued=null;
-  bigFun.cancel(id);pocketTools.cancel(id);return {queued_cancelled:queuedCancelled,running:bigFun.busy() || pocketTools.busy()};
+  bigFun.cancel(id);pocketTools.cancel(id);flareTools.cancel(id);return {queued_cancelled:queuedCancelled,running:bigFun.busy() || pocketTools.busy() || flareTools.busy()};
 };
 let restoreSettingsOnUpdate=false;
 rpc.exports.prepareDetach = function() {
   queued=null;
   bigFun.cancel();
   pocketTools.cancel();
-  restoreSettingsOnUpdate=youSettings.hasChanges() || bigFun.needsCleanup() || characterTools.hasChanges() || cameraTools.hasChanges() || pocketTools.needsCleanup();
+  flareTools.cancel();
+  restoreSettingsOnUpdate=flareTools.hasChanges() || youSettings.hasChanges() || bigFun.needsCleanup() || characterTools.hasChanges() || cameraTools.hasChanges() || pocketTools.needsCleanup();
   return {pending:restoreSettingsOnUpdate};
 };
 const telemetryListener = Interceptor.attach(updateAddress, {onEnter(args) {
   const now = Date.now();
-  if (!queued && !restoreSettingsOnUpdate && !bigFun.busy() && !pocketTools.busy() && now-lastTick < 200) return;
+  if (!restoreSettingsOnUpdate) flareTools.fire(args[0], now);
+  if (!queued && !restoreSettingsOnUpdate && !bigFun.busy() && !pocketTools.busy() && !flareTools.busy() && now-lastTick < 200) return;
   const roster = safe(() => describePlayers(), []);
   const owners = roster.filter(p => p.isLocalPlayer && p.isOwned && p.backrefMatches);
   if (owners.length !== 1 || !args[0].equals(ptr(owners[0].pc))) return;
@@ -199,7 +202,7 @@ const telemetryListener = Interceptor.attach(updateAddress, {onEnter(args) {
       if(!pocketTools.stop()) return;
       restoreSettingsOnUpdate=false;
       const restoreErrors=[];
-      for(const restore of [()=>characterTools.restoreAll(),()=>cameraTools.restoreAll(),()=>youSettings.restoreAll()]) {
+      for(const restore of [()=>flareTools.restoreAll(),()=>characterTools.restoreAll(),()=>cameraTools.restoreAll(),()=>youSettings.restoreAll()]) {
         try {restore();} catch(error) {restoreErrors.push(String(error));}
       }
       if(restoreErrors.length) throw Error(restoreErrors.join('; '));
@@ -214,6 +217,7 @@ const telemetryListener = Interceptor.attach(updateAddress, {onEnter(args) {
   }
   bigFun.tick(now);
   pocketTools.tick(now);
+  flareTools.tick(now);
   characterTools.tick(now);
   if (now-lastTick < 200) return;
   lastTick = now;
@@ -227,7 +231,7 @@ const telemetryListener = Interceptor.attach(updateAddress, {onEnter(args) {
     tools.pockets=pockets.pockets;tools.pockets_reason=pockets.reason;
     send({type:'snapshot', sequence:++sequence, sampled_at_ms:now, items_at_ms:itemsAt,
       owner_pc:owner.pc, owner_pn:owner.pn, players, items:liveItems, build:locationTools.build,
-      character_settings:youSettings.snapshot(),fun:bigFun.capabilities(owner,roster),
+      character_settings:youSettings.snapshot(),fun:{...bigFun.capabilities(owner,roster),flare:flareTools.capability(owner)},
       tools,camera:cameraTools.snapshot(),location:locationTools.snapshot()});
   } catch (error) { send({type:'telemetry_error', message:String(error)}); }
 }});

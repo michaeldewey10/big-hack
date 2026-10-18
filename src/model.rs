@@ -188,6 +188,7 @@ pub struct FunCapability {
     pub available: bool,
     pub reason: String,
     pub note: String,
+    pub active: bool,
 }
 
 #[derive(Clone, Default, Deserialize)]
@@ -197,6 +198,7 @@ pub struct FunCapabilities {
     pub clear_corpses: FunCapability,
     pub items: FunCapability,
     pub gather: FunCapability,
+    pub flare: FunCapability,
 }
 impl FunCapabilities {
     pub fn get(&self, action: &str) -> Option<&FunCapability> {
@@ -205,6 +207,7 @@ impl FunCapabilities {
             "clear_corpses" => Some(&self.clear_corpses),
             "grab_all_items" => Some(&self.items),
             "gather_party" => Some(&self.gather),
+            "flare_auto" | "flare_auto_off" => Some(&self.flare),
             _ => None,
         }
     }

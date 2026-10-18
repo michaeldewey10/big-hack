@@ -23,7 +23,7 @@ Some controls require hosting, including appearance changes, corpse spawning and
 | **Items** | Searchable, distance-sorted client-loaded props; pickup and teleport; collect the selected item type within a chosen distance. |
 | **Camera** | Zoom slider, detach/return, movement and look controls. |
 | **Places** | Save locations, teleport to a saved location, and return to the previous teleport position. |
-| **Big Fun** | Spawn ten corpses around you; spawn a ten-pin corpse triangle; clear all active corpses; collect items; bring party members to you; randomize your colors. |
+| **Big Fun** | Spawn ten corpses around you; spawn a ten-pin corpse triangle; clear all active corpses; collect items; bring party members to you; flare gun full auto; randomize your colors. |
 
 The UI follows Big Walk's simple serif settings style, with colored marker underlines and draggable scrollbars. Ctrl+1 through Ctrl+6 selects You, Party, Items, Camera, Places and Big Fun. Escape cancels a slider drag and releases a held Use action. Release a slider to apply its value.
 

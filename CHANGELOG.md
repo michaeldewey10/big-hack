@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.0 — 2026-10-17
+
+- New Big Fun action, **Flare gun full auto**: picks up the nearest free, loaded flare gun (or uses the one in your hands) and removes its 20-second cooldown block on that gun only. While you hold the left mouse button in Big Walk, with the window focused and in normal gameplay, it re-fires through the game's normal use action every 120 ms. **Stop flare gun full auto**, dropping the gun, or closing Big Hack restores the normal cooldown.
+- Tested live as a non-host client: pickup, arming and rapid fire worked. Peer visibility was not separately confirmed, and other mouse bindings for Use are not detected.
+
 ## 0.1.1 — 2026-10-17
 
 - Game version detection: Big Hack checks the installed Big Walk files at startup and before attaching, and shows **Unsupported game version** in red when they don't match the supported build (Steam build 25723723). The message names the installed Steam build when Steam reports a different one.

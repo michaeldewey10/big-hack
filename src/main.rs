@@ -260,6 +260,7 @@ impl BigHack {
                                 ("clear corpses", &data.fun.clear_corpses),
                                 ("items", &data.fun.items),
                                 ("gather", &data.fun.gather),
+                                ("flare", &data.fun.flare),
                             ] {
                                 diagnostics::log(&format!(
                                     "Big Fun {label}: {} {}",
