@@ -261,6 +261,7 @@ impl BigHack {
                                 ("items", &data.fun.items),
                                 ("gather", &data.fun.gather),
                                 ("flare", &data.fun.flare),
+                                ("train", &data.fun.train),
                             ] {
                                 diagnostics::log(&format!(
                                     "Big Fun {label}: {} {}",

@@ -300,6 +300,11 @@ impl BigHack {
         } else {
             ("flare_auto", "Flare gun full auto")
         };
+        let (train_action, train_label) = if self.snapshot.fun.train.active {
+            ("train_normal", "Normal train speed")
+        } else {
+            ("train_fast", "Train 20x speed")
+        };
         for (index, action, label) in [
             (0usize, "spawn_corpses", "Spawn 10 corpses around you"),
             (1, "spawn_corpse_pins", "Spawn 10 corpse bowling pins"),
@@ -307,6 +312,7 @@ impl BigHack {
             (3, "grab_all_items", "Grab every item"),
             (4, "gather_party", "Bring everyone to you"),
             (5, flare_action, flare_label),
+            (6, train_action, train_label),
         ] {
             let capability = self.snapshot.fun.get(action);
             let available = self.live() && capability.is_some_and(|c| c.available);

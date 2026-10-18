@@ -199,6 +199,7 @@ pub struct FunCapabilities {
     pub items: FunCapability,
     pub gather: FunCapability,
     pub flare: FunCapability,
+    pub train: FunCapability,
 }
 impl FunCapabilities {
     pub fn get(&self, action: &str) -> Option<&FunCapability> {
@@ -208,6 +209,7 @@ impl FunCapabilities {
             "grab_all_items" => Some(&self.items),
             "gather_party" => Some(&self.gather),
             "flare_auto" | "flare_auto_off" => Some(&self.flare),
+            "train_fast" | "train_normal" => Some(&self.train),
             _ => None,
         }
     }

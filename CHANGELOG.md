@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.3.0 — 2026-10-17
+
+- New host-only Big Fun toggle, **Train 20x speed**: on the main train (not the chairlift), multiplies top speed, acceleration and braking by 20, so 3 m/s becomes 60 m/s, and applies it right away if the engine is running. The host's simulation syncs the new speed to every player. **Normal train speed** restores the original values and keeps braking fast until the train is back to its usual speed; closing Big Hack restores them immediately.
+- Tested live while hosting: the train sped up, clients received the synced speed, and Normal train speed restored the original tuning.
+
 ## 0.2.0 — 2026-10-17
 
 - New Big Fun action, **Flare gun full auto**: picks up the nearest free, loaded flare gun (or uses the one in your hands) and removes its 20-second cooldown block on that gun only. While you hold the left mouse button in Big Walk, with the window focused and in normal gameplay, it re-fires through the game's normal use action every 120 ms. **Stop flare gun full auto**, dropping the gun, or closing Big Hack restores the normal cooldown.
